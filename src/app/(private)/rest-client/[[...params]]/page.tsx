@@ -2,18 +2,11 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from 'next/navigation';
 import RestClientWrapper from '@/components/RestClient/RestClientWrapper';
 
-interface PageProps {
-    params: {
-        params?: string[];
-    };
-    searchParams: { [key: string]: string | string[] | undefined };
-}
-
 interface RouteParams {
     params?: string[];
 }
 
-export default async function RestClientPage({ params, searchParams }: PageProps) {
+export default async function RestClientPage() {
     const supabase = await createClient();
     const {
         data: { user },

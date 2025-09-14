@@ -27,8 +27,10 @@ export default function SignupForm() {
                     setLoading(true);
                     try {
                         await signup(formData);
-                    } catch (err: any) {
-                        setError(err.message || "Signup failed");
+                    } catch (err: unknown) {
+                        if (err instanceof Error) {
+                            setError(err.message || "Signup failed");
+                        }
                         setLoading(false);
                     }
                 }}
