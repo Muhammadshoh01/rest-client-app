@@ -23,4 +23,55 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
 }
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+
+.content {
+  display: flex;
+  flex-direction: column;
+    align-items: center;
+ 
+
+}
+
+}
+.header-wrapper {
+  display: flex;
+  width: 700px;
+  justify-content: space-around;
+  align-items: center;
+}
+
+button {
+  width: 80px;
+  height: 50px;
+  background-color: blanchedalmond;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.footer-wrapper {
+  display: flex;
+  margin-top: 50px;
+  justify-content: space-between;
+  width: 700px;
+  align-items: center;
+}
+
+.github-links {
+  display: flex;
+  justify-content: space-around;
+  width: 310px;
+}
+
+.date {
+  font-size: 24px;
+}
+
+.git-image {
+  margin: 0 auto;
+}
+
