@@ -11,66 +11,94 @@ export default function SignupForm() {
     const [error, setError] = useState<string | null>(null);
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-100">
-            <form
-                action={async (formData) => {
-                    setError(null);
+        <div className="max-w-md w-full space-y-8">
+            <div className="bg-white rounded-lg shadow-lg p-8">
+                <div className="text-center mb-8">
+                    <h2 className="text-3xl font-bold text-gray-900">Sign Up</h2>
+                    <p className="mt-2 text-gray-600">
+                        Create your account to get started.
+                    </p>
+                </div>
 
-                    const password = formData.get("password") as string;
-                    if (!passwordRegex.test(password)) {
-                        setError(
-                            "Password must be at least 8 chars, include letter, digit, special character."
-                        );
-                        return;
-                    }
+                <form
+                    action={async (formData) => {
+                        setError(null);
 
-                    setLoading(true);
-                    try {
-                        await signup(formData);
-                    } catch (err: unknown) {
-                        if (err instanceof Error) {
-                            setError(err.message || "Signup failed");
+                        const password = formData.get("password") as string;
+                        if (!passwordRegex.test(password)) {
+                            setError(
+                                "Password must be at least 8 characters, include letter, digit, and special character."
+                            );
+                            return;
                         }
-                        setLoading(false);
-                    }
-                }}
-                className="w-full max-w-sm rounded-xl bg-white p-6 shadow-md"
-            >
-                <h1 className="mb-4 text-xl font-bold">Sign Up</h1>
 
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    className="mb-3 w-full rounded border p-2"
-                    required
-                />
-
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    className="mb-3 w-full rounded border p-2"
-                    required
-                />
-
-                {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full rounded bg-blue-600 p-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
+                        setLoading(true);
+                        try {
+                            await signup(formData);
+                        } catch (err: unknown) {
+                            if (err instanceof Error) {
+                                setError(err.message || "Signup failed");
+                            }
+                            setLoading(false);
+                        }
+                    }}
+                    className="space-y-6"
                 >
-                    {loading ? "Signing up..." : "Sign Up"}
-                </button>
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+                            {error}
+                        </div>
+                    )}
 
-                <p className="mt-4 text-sm">
-                    Already have an account?{" "}
-                    <Link href="/login" className="text-blue-600 hover:underline">
-                        Login
-                    </Link>
-                </p>
-            </form>
+                    <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                            Email
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            name="email"
+                            placeholder="Enter your email"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                            Must be at least 8 characters with letter, digit, and special character
+                        </p>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loading ? "Creating account..." : "Sign Up"}
+                    </button>
+                </form>
+
+                <div className="mt-6 text-center">
+                    <p className="text-sm text-gray-600">
+                        Already have an account?{" "}
+                        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                            Sign in
+                        </Link>
+                    </p>
+                </div>
+            </div>
         </div>
     );
 }

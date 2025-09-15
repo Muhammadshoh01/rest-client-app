@@ -7,7 +7,6 @@ import { encodeBase64, decodeBase64 } from '@/utils/functions';
 import { Header, RequestData, ResponseData } from '@/types/rest-client';
 import { HTTP_METHODS } from '@/utils/constants/vars';
 
-import RestClientHeader from './RestClientHeader';
 import RequestForm from './RequestForm';
 import TabNavigation from './TabNavigation';
 import RequestBodyTab from './RequestBodyTab';
@@ -283,14 +282,24 @@ export default function RestClient({ user }: { user: User }) {
     const headerCount = request.headers.filter(h => h.enabled && h.key && h.value).length;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <RestClientHeader user={user} currentMethod={request.method} />
+        <div className="bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">REST Client</h1>
+                    <p className="mt-2 text-gray-600">
+                        Build, test, and debug your REST API requests
+                    </p>
+                </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="bg-white rounded-lg shadow-sm border mb-6">
+                <div className="bg-white rounded-lg shadow-lg border border-gray-200 mb-6">
                     <div className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold text-gray-900">Request</h2>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-gray-900">Request</h2>
+                            <div className="flex items-center space-x-2">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Ready
+                                </span>
+                            </div>
                         </div>
 
                         <RequestForm
@@ -302,41 +311,72 @@ export default function RestClient({ user }: { user: User }) {
                             onExecute={executeRequest}
                         />
 
-                        <TabNavigation
-                            activeTab={activeTab}
-                            onTabChange={setActiveTab}
-                            headerCount={headerCount}
-                        />
+                        <div className="border-b border-gray-200 mt-6 mb-6">
+                            <nav className="-mb-px flex space-x-8">
+                                <TabNavigation
+                                    activeTab={activeTab}
+                                    onTabChange={setActiveTab}
+                                    headerCount={headerCount}
+                                />
+                            </nav>
+                        </div>
 
-                        {activeTab === 'body' && (
-                            <RequestBodyTab
-                                body={request.body}
-                                bodyFormat={bodyFormat}
-                                onBodyChange={(body) => setRequest({ ...request, body })}
-                                onFormatChange={setBodyFormat}
-                            />
-                        )}
+                        <div className="mt-6">
+                            {activeTab === 'body' && (
+                                <div className="space-y-4">
+                                    <RequestBodyTab
+                                        body={request.body}
+                                        bodyFormat={bodyFormat}
+                                        onBodyChange={(body) => setRequest({ ...request, body })}
+                                        onFormatChange={setBodyFormat}
+                                    />
+                                </div>
+                            )}
 
-                        {activeTab === 'headers' && (
-                            <HeadersTab
-                                headers={request.headers}
-                                onAddHeader={addHeader}
-                                onUpdateHeader={updateHeader}
-                                onRemoveHeader={removeHeader}
-                            />
-                        )}
+                            {activeTab === 'headers' && (
+                                <div className="space-y-4">
+                                    <HeadersTab
+                                        headers={request.headers}
+                                        onAddHeader={addHeader}
+                                        onUpdateHeader={updateHeader}
+                                        onRemoveHeader={removeHeader}
+                                    />
+                                </div>
+                            )}
 
-                        {activeTab === 'code' && (
-                            <CodeTab
-                                request={request}
-                                selectedLanguage={selectedLanguage}
-                                onLanguageChange={setSelectedLanguage}
-                            />
-                        )}
+                            {activeTab === 'code' && (
+                                <div className="space-y-4">
+                                    <CodeTab
+                                        request={request}
+                                        selectedLanguage={selectedLanguage}
+                                        onLanguageChange={setSelectedLanguage}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {response && <ResponseSection response={response} />}
+                {response && (
+                    <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-semibold text-gray-900">Response</h2>
+                                <div className="flex items-center space-x-2">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${response.status >= 200 && response.status < 300
+                                        ? 'bg-green-100 text-green-800'
+                                        : response.status >= 400
+                                            ? 'bg-red-100 text-red-800'
+                                            : 'bg-yellow-100 text-yellow-800'
+                                        }`}>
+                                        {response.status}
+                                    </span>
+                                </div>
+                            </div>
+                            <ResponseSection response={response} />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
