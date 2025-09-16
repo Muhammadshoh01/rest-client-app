@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
 import { encodeBase64, decodeBase64 } from '@/utils/functions';
-import { Header, RequestData, ResponseData } from '@/types/rest-client';
+import { Header, RequestData, ResponseData, Variable } from '@/types/rest-client';
 import { HTTP_METHODS } from '@/utils/constants/vars';
+import {
+    saveVariablesToStorage,
+    loadVariablesFromStorage,
+    replaceVariables,
+    hasVariables
+} from '@/utils/functions/variables';
 
 import RequestForm from './RequestForm';
 import TabNavigation from './TabNavigation';
@@ -13,6 +19,9 @@ import RequestBodyTab from './RequestBodyTab';
 import HeadersTab from './HeadersTab';
 import CodeTab from './CodeTab';
 import ResponseSection from './ResponseSection';
+import VariablePreview from '@/components/variable/variablePreview';
+
+const VariablesTab = lazy(() => import('@/components/variable/VariableTab'));
 
 function getInitialRequestFromUrl(pathname: string, searchParams: URLSearchParams): RequestData {
     console.log("🔍 Parsing URL - pathname:", pathname);
@@ -86,6 +95,7 @@ function getInitialRequestFromUrl(pathname: string, searchParams: URLSearchParam
 
 let globalResponse: ResponseData | null = null;
 let globalRequest: RequestData | null = null;
+let globalVariables: Variable[] = [];
 
 export default function RestClient({ user }: { user: User }) {
     const router = useRouter();
@@ -93,6 +103,7 @@ export default function RestClient({ user }: { user: User }) {
     const searchParams = useSearchParams();
     const renderCount = useRef(0);
     const hasInitialized = useRef(false);
+    const variablesLoaded = useRef(false);
 
     renderCount.current++;
     console.log(`🔄 RestClient render #${renderCount.current}`);
@@ -117,14 +128,26 @@ export default function RestClient({ user }: { user: User }) {
         return null;
     });
 
+    const [variables, setVariables] = useState<Variable[]>(() => {
+        console.log("🚀 Initializing variables state");
+        return globalVariables;
+    });
+
     const [isLoading, setIsLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'code'>('body');
+    const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'variables' | 'code'>('body');
     const [selectedLanguage, setSelectedLanguage] = useState('curl');
     const [bodyFormat, setBodyFormat] = useState<'json' | 'text'>('json');
 
     useEffect(() => {
+        if (user && !variablesLoaded.current) {
+            console.log("🔄 Loading variables from localStorage");
+            const savedVariables = loadVariablesFromStorage();
+            setVariables(savedVariables);
+            globalVariables = savedVariables;
+            variablesLoaded.current = true;
+        }
         hasInitialized.current = true;
-    }, []);
+    }, [user]);
 
     useEffect(() => {
         globalRequest = request;
@@ -133,6 +156,14 @@ export default function RestClient({ user }: { user: User }) {
     useEffect(() => {
         globalResponse = response;
     }, [response]);
+
+    useEffect(() => {
+        if (user && variablesLoaded.current) {
+            console.log("💾 Saving variables to localStorage");
+            saveVariablesToStorage(variables);
+            globalVariables = variables;
+        }
+    }, [variables, user]);
 
     console.log(`📊 Current response state:`, response ? 'HAS_RESPONSE' : 'NULL');
 
@@ -182,11 +213,14 @@ export default function RestClient({ user }: { user: User }) {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000);
 
+            const resolvedUrl = replaceVariables(request.url, variables);
             const headers: Record<string, string> = {};
             request.headers
                 .filter(h => h.enabled && h.key.trim() && h.value.trim())
                 .forEach(h => {
-                    headers[h.key] = h.value;
+                    const resolvedKey = replaceVariables(h.key, variables);
+                    const resolvedValue = replaceVariables(h.value, variables);
+                    headers[resolvedKey] = resolvedValue;
                 });
 
             const fetchOptions: RequestInit = {
@@ -197,11 +231,14 @@ export default function RestClient({ user }: { user: User }) {
             };
 
             if (['POST', 'PUT', 'PATCH'].includes(request.method) && request.body.trim()) {
-                fetchOptions.body = request.body;
+                const resolvedBody = replaceVariables(request.body, variables);
+                fetchOptions.body = resolvedBody;
             }
 
-            console.log("📡 Making fetch request...");
-            const response = await fetch(request.url, fetchOptions);
+            console.log("📡 Making fetch request with resolved values...");
+            console.log("📡 Resolved URL:", resolvedUrl);
+
+            const response = await fetch(resolvedUrl, fetchOptions);
             clearTimeout(timeoutId);
 
             const responseText = await response.text();
@@ -279,7 +316,42 @@ export default function RestClient({ user }: { user: User }) {
         setRequest({ ...request, headers: newHeaders });
     };
 
+    const addVariable = () => {
+        const newVariable: Variable = {
+            id: Date.now().toString(),
+            name: '',
+            value: '',
+            description: '',
+            enabled: true
+        };
+        setVariables([...variables, newVariable]);
+    };
+
+    const updateVariable = (id: string, field: 'name' | 'value' | 'description' | 'enabled', value: string | boolean) => {
+        const newVariables = variables.map(v =>
+            v.id === id ? { ...v, [field]: value } : v
+        );
+        setVariables(newVariables);
+    };
+
+    const removeVariable = (id: string) => {
+        const newVariables = variables.filter(v => v.id !== id);
+        setVariables(newVariables);
+    };
+
+    const importVariables = (importedVariables: Variable[]) => {
+        setVariables([...variables, ...importedVariables]);
+    };
+
+    const exportVariables = () => {
+    };
+
     const headerCount = request.headers.filter(h => h.enabled && h.key && h.value).length;
+    const variableCount = variables.filter(v => v.enabled && v.name && v.value).length;
+
+    const requestHasVariables = hasVariables(request.url) ||
+        hasVariables(request.body) ||
+        request.headers.some(h => hasVariables(h.key) || hasVariables(h.value));
 
     return (
         <div className="bg-gray-50">
@@ -287,7 +359,7 @@ export default function RestClient({ user }: { user: User }) {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">REST Client</h1>
                     <p className="mt-2 text-gray-600">
-                        Build, test, and debug your REST API requests
+                        Build, test, and debug your REST API requests with variable support
                     </p>
                 </div>
 
@@ -299,6 +371,11 @@ export default function RestClient({ user }: { user: User }) {
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     Ready
                                 </span>
+                                {requestHasVariables && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                        Uses Variables
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -311,16 +388,29 @@ export default function RestClient({ user }: { user: User }) {
                             onExecute={executeRequest}
                         />
 
+                        {/* Variable Preview for URL */}
+                        {hasVariables(request.url) && (
+                            <VariablePreview
+                                text={request.url}
+                                variables={variables}
+                                label="URL"
+                                className="mb-4"
+                            />
+                        )}
+
+                        {/* Styled Tab Navigation */}
                         <div className="border-b border-gray-200 mt-6 mb-6">
                             <nav className="-mb-px flex space-x-8">
                                 <TabNavigation
                                     activeTab={activeTab}
                                     onTabChange={setActiveTab}
                                     headerCount={headerCount}
+                                    variableCount={variableCount}
                                 />
                             </nav>
                         </div>
 
+                        {/* Tab Content with consistent styling */}
                         <div className="mt-6">
                             {activeTab === 'body' && (
                                 <div className="space-y-4">
@@ -330,6 +420,14 @@ export default function RestClient({ user }: { user: User }) {
                                         onBodyChange={(body) => setRequest({ ...request, body })}
                                         onFormatChange={setBodyFormat}
                                     />
+                                    {/* Variable Preview for Body */}
+                                    {hasVariables(request.body) && (
+                                        <VariablePreview
+                                            text={request.body}
+                                            variables={variables}
+                                            label="Request Body"
+                                        />
+                                    )}
                                 </div>
                             )}
 
@@ -341,16 +439,85 @@ export default function RestClient({ user }: { user: User }) {
                                         onUpdateHeader={updateHeader}
                                         onRemoveHeader={removeHeader}
                                     />
+                                    {/* Variable Preview for Headers */}
+                                    {request.headers.some(h => hasVariables(h.key) || hasVariables(h.value)) && (
+                                        <div className="space-y-2">
+                                            {request.headers
+                                                .filter(h => hasVariables(h.key) || hasVariables(h.value))
+                                                .map(header => (
+                                                    <div key={header.id}>
+                                                        {hasVariables(header.key) && (
+                                                            <VariablePreview
+                                                                text={header.key}
+                                                                variables={variables}
+                                                                label={`Header Key`}
+                                                            />
+                                                        )}
+                                                        {hasVariables(header.value) && (
+                                                            <VariablePreview
+                                                                text={header.value}
+                                                                variables={variables}
+                                                                label={`Header Value`}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'variables' && user && (
+                                <div className="space-y-4">
+                                    <Suspense fallback={
+                                        <div className="flex justify-center items-center py-8">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                                        </div>
+                                    }>
+                                        <VariablesTab
+                                            variables={variables}
+                                            onAddVariable={addVariable}
+                                            onUpdateVariable={updateVariable}
+                                            onRemoveVariable={removeVariable}
+                                            onImportVariables={importVariables}
+                                            onExportVariables={exportVariables}
+                                        />
+                                    </Suspense>
+                                </div>
+                            )}
+
+                            {activeTab === 'variables' && !user && (
+                                <div className="text-center py-8 text-gray-500">
+                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                    <h3 className="mt-4 text-lg font-medium">Authentication Required</h3>
+                                    <p className="mt-2">Please sign in to use variables feature</p>
                                 </div>
                             )}
 
                             {activeTab === 'code' && (
                                 <div className="space-y-4">
                                     <CodeTab
-                                        request={request}
+                                        request={{
+                                            ...request,
+                                            url: replaceVariables(request.url, variables),
+                                            body: replaceVariables(request.body, variables),
+                                            headers: request.headers.map(h => ({
+                                                ...h,
+                                                key: replaceVariables(h.key, variables),
+                                                value: replaceVariables(h.value, variables)
+                                            }))
+                                        }}
                                         selectedLanguage={selectedLanguage}
                                         onLanguageChange={setSelectedLanguage}
                                     />
+                                    {requestHasVariables && (
+                                        <div className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded p-2">
+                                            📝 Code shows resolved values with variables replaced
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

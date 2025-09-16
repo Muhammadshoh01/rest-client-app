@@ -28,7 +28,9 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    const isPrivatePage = request.nextUrl.pathname.startsWith("/rest-client");
+    const isPrivatePage =
+        request.nextUrl.pathname.startsWith("/rest-client") ||
+        request.nextUrl.pathname.startsWith("/variables");
     const isAuthPage =
         request.nextUrl.pathname.startsWith("/login") ||
         request.nextUrl.pathname.startsWith("/signup");

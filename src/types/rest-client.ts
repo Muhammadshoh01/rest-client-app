@@ -25,3 +25,16 @@ export interface ResponseData {
 export interface RestClientWrapperProps {
     user: User;
 }
+
+export interface Variable {
+    id: string;
+    name: string;
+    value: string;
+    description?: string;
+    enabled: boolean;
+}
+
+export interface VariableState {
+    variables: Variable[];
+    isLoaded: boolean;
+}
