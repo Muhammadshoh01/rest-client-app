@@ -228,6 +228,29 @@ export default function RestClient({ user }: { user: User }) {
     }
   }, [variables, user]);
 
+  useEffect(() => {
+    // Re-parse URL when pathname or searchParams change
+    console.log("🔄 URL changed, re-parsing request data");
+    const newRequest = getInitialRequestFromUrl(pathname, searchParams);
+
+    // Only update if the request data is actually different
+    const isDifferent =
+      newRequest.method !== request.method ||
+      newRequest.url !== request.url ||
+      newRequest.body !== request.body ||
+      JSON.stringify(newRequest.headers) !== JSON.stringify(request.headers);
+
+    if (isDifferent) {
+      console.log("🔄 Request data changed, updating state");
+      setRequest(newRequest);
+      globalRequest = newRequest;
+
+      // Clear response when navigating to a new request
+      setResponse(null);
+      globalResponse = null;
+    }
+  }, [pathname, searchParams]);
+
   console.log(`📊 Current response state:`, response ? "HAS_RESPONSE" : "NULL");
 
   const updateUrl = (requestData: RequestData) => {

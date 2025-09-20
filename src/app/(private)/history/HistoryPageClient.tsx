@@ -35,7 +35,7 @@ export default function HistoryPageClient({ user }: HistoryPageClientProps) {
     const queryString = queryParams.toString();
     const fullUrl = queryString ? `${path}?${queryString}` : path;
 
-    router.push(fullUrl);
+    router.replace(fullUrl);
   };
 
   return (
