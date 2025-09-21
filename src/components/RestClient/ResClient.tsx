@@ -29,6 +29,7 @@ import VariablePreview from '@/components/variable/variablePreview';
 import { useTranslations } from 'next-intl';
 
 const VariablesTab = lazy(() => import('@/components/variable/VariableTab'));
+
 function calculateRequestSize(body: BodyInit | null | undefined): number {
   if (!body) return 0;
 
@@ -109,11 +110,8 @@ function getInitialRequestFromUrl(
           body: decodedBody,
         };
       } catch (error) {
-        console.error('❌ Error decoding URL parts:', error);
       }
-    } else {
     }
-  } else {
   }
 
   return {
@@ -238,8 +236,8 @@ export default function RestClient({ user }: { user: User }) {
 
     router.replace(fullUrl, { scroll: false });
   };
-  const executeRequest = async () => {
 
+  const executeRequest = async () => {
     if (!request.url.trim()) {
       alert('Please enter a URL');
       return;
@@ -252,6 +250,9 @@ export default function RestClient({ user }: { user: User }) {
 
     let resolvedUrl: string;
     let requestSize = 0;
+
+    const originalError = console.error;
+    console.error = () => { };
 
     try {
       const controller = new AbortController();
@@ -285,10 +286,13 @@ export default function RestClient({ user }: { user: User }) {
       }
 
       const response = await fetch(resolvedUrl, fetchOptions);
+
       clearTimeout(timeoutId);
+      console.error = originalError;
 
       const responseText = await response.text();
       const endTime = Date.now();
+
 
       const responseHeaders: Record<string, string> = {};
       response.headers.forEach((value, key) => {
@@ -321,17 +325,43 @@ export default function RestClient({ user }: { user: User }) {
       globalResponse = newResponse;
       updateUrl(request);
     } catch (error) {
+
+      console.error = originalError;
+
       const endTime = Date.now();
-      const errorMessage =
-        error instanceof Error ? error.message : 'Request failed';
+      let errorStatus = 0;
+      let errorStatusText = 'Network Error';
+      let errorMessage = 'Request failed';
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorStatus = 408;
+          errorStatusText = 'Request Timeout';
+          errorMessage = 'Request timed out after 30 seconds';
+        } else if (error.message.includes('CORS')) {
+          errorStatus = 403;
+          errorStatusText = 'Forbidden';
+          errorMessage = 'CORS policy blocked this request';
+        } else if (error.message.includes('Failed to fetch') ||
+          error.message.includes('NetworkError') ||
+          error.message.includes('ERR_NAME_NOT_RESOLVED') ||
+          error.message.includes('ERR_CONNECTION_REFUSED')) {
+          errorStatus = 404;
+          errorStatusText = 'Not Found';
+          errorMessage = 'The requested resource could not be found or the server is unreachable';
+        } else {
+          errorMessage = error.message;
+        }
+      }
 
       const errorResponse = {
-        status: 0,
-        statusText: 'Network Error',
+        status: errorStatus,
+        statusText: errorStatusText,
         headers: {},
         body: `Error: ${errorMessage}`,
         time: endTime - startTime,
       };
+
       await saveRequestToHistory({
         method: request.method,
         url: replaceVariables(request.url, variables),
@@ -339,7 +369,7 @@ export default function RestClient({ user }: { user: User }) {
           (h) => h.enabled && h.key.trim() && h.value.trim()
         ),
         body: request.body,
-        status: 0,
+        status: errorStatus,
         duration: endTime - startTime,
         requestSize,
         responseSize: 0,
@@ -353,6 +383,7 @@ export default function RestClient({ user }: { user: User }) {
       setIsLoading(false);
     }
   };
+
   const addHeader = () => {
     const newHeaders = [
       ...request.headers,
