@@ -1,12 +1,13 @@
-"use client";
+'use client';
 
-import { prettifyJson } from "@/utils/functions";
+import { prettifyJson } from '@/utils/functions';
+import { useTranslations } from 'next-intl';
 
 interface RequestBodyTabProps {
   body: string;
-  bodyFormat: "json" | "text";
+  bodyFormat: 'json' | 'text';
   onBodyChange: (body: string) => void;
-  onFormatChange: (format: "json" | "text") => void;
+  onFormatChange: (format: 'json' | 'text') => void;
 }
 
 export default function RequestBodyTab({
@@ -15,8 +16,10 @@ export default function RequestBodyTab({
   onBodyChange,
   onFormatChange,
 }: RequestBodyTabProps) {
+  const t = useTranslations();
+
   const prettifyBody = () => {
-    if (bodyFormat === "json") {
+    if (bodyFormat === 'json') {
       const prettified = prettifyJson(body);
       onBodyChange(prettified);
     }
@@ -26,16 +29,18 @@ export default function RequestBodyTab({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium text-gray-700">Format:</span>
+          <span className="text-sm font-medium text-gray-700">
+            {t('format')}:
+          </span>
           <div className="flex space-x-1">
-            {(["json", "text"] as const).map((format) => (
+            {(['json', 'text'] as const).map((format) => (
               <button
                 key={format}
                 onClick={() => onFormatChange(format)}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                   bodyFormat === format
-                    ? "bg-indigo-100 text-indigo-700 border border-indigo-200"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent"
+                    ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent'
                 }`}
               >
                 {format.toUpperCase()}
@@ -43,20 +48,20 @@ export default function RequestBodyTab({
             ))}
           </div>
         </div>
-        {bodyFormat === "json" && body && (
+        {bodyFormat === 'json' && body && (
           <button
             onClick={prettifyBody}
             className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
           >
-            Prettify JSON
+            {t('prettifyJson')}
           </button>
         )}
       </div>
       <textarea
         placeholder={
-          bodyFormat === "json"
+          bodyFormat === 'json'
             ? '{\n  "key": "value",\n  "array": [1, 2, 3]\n}'
-            : "Enter your request body here..."
+            : t('textPlaceholder')
         }
         value={body}
         onChange={(e) => onBodyChange(e.target.value)}
@@ -65,7 +70,7 @@ export default function RequestBodyTab({
       />
       {body && (
         <div className="text-xs text-gray-500">
-          Body size: {new Blob([body]).size} bytes
+          {t('bodySize')}: {new Blob([body]).size} {t('bytes')}
         </div>
       )}
     </div>

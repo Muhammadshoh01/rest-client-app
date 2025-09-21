@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect, lazy, Suspense } from "react";
-import { User } from "@supabase/supabase-js";
-import { Variable } from "@/types/rest-client";
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { User } from '@supabase/supabase-js';
+import { Variable } from '@/types/rest-client';
 import {
   saveVariablesToStorage,
   loadVariablesFromStorage,
-  findVariablesInText,
-} from "@/utils/functions/variables";
+} from '@/utils/functions/variables';
+import { useTranslations } from 'next-intl';
 
-const VariablesTab = lazy(() => import("@/components/variable/VariableTab"));
+const VariablesTab = lazy(() => import('@/components/variable/VariableTab'));
 
 interface VariablesPageProps {
   user: User;
@@ -19,9 +19,10 @@ export default function VariablesPage({ user }: VariablesPageProps) {
   const [variables, setVariables] = useState<Variable[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const t = useTranslations('VariablesPage');
+
   useEffect(() => {
     if (user) {
-      console.log("🔄 Loading variables from localStorage");
       const savedVariables = loadVariablesFromStorage();
       setVariables(savedVariables);
       setIsLoaded(true);
@@ -30,7 +31,6 @@ export default function VariablesPage({ user }: VariablesPageProps) {
 
   useEffect(() => {
     if (user && isLoaded) {
-      console.log("💾 Saving variables to localStorage");
       saveVariablesToStorage(variables);
     }
   }, [variables, user, isLoaded]);
@@ -38,9 +38,9 @@ export default function VariablesPage({ user }: VariablesPageProps) {
   const addVariable = () => {
     const newVariable: Variable = {
       id: Date.now().toString(),
-      name: "",
-      value: "",
-      description: "",
+      name: '',
+      value: '',
+      description: '',
       enabled: true,
     };
     setVariables([...variables, newVariable]);
@@ -48,11 +48,11 @@ export default function VariablesPage({ user }: VariablesPageProps) {
 
   const updateVariable = (
     id: string,
-    field: "name" | "value" | "description" | "enabled",
-    value: string | boolean,
+    field: 'name' | 'value' | 'description' | 'enabled',
+    value: string | boolean
   ) => {
     const newVariables = variables.map((v) =>
-      v.id === id ? { ...v, [field]: value } : v,
+      v.id === id ? { ...v, [field]: value } : v
     );
     setVariables(newVariables);
   };
@@ -66,10 +66,10 @@ export default function VariablesPage({ user }: VariablesPageProps) {
     setVariables([...variables, ...importedVariables]);
   };
 
-  const exportVariables = () => {};
+  const exportVariables = () => { };
 
   const enabledVariablesCount = variables.filter(
-    (v) => v.enabled && v.name && v.value,
+    (v) => v.enabled && v.name && v.value
   ).length;
   const totalVariablesCount = variables.length;
 
@@ -91,21 +91,22 @@ export default function VariablesPage({ user }: VariablesPageProps) {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Variables</h1>
-              <p className="mt-2 text-gray-600">
-                Manage environment variables and reusable values for your API
-                requests
-              </p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="mt-2 text-gray-600">{t('subtitle')}</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <div className="text-sm text-gray-500">Total Variables</div>
+                <div className="text-sm text-gray-500">
+                  {t('totalVariables')}
+                </div>
                 <div className="text-2xl font-bold text-gray-900">
                   {totalVariablesCount}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-500">Active Variables</div>
+                <div className="text-sm text-gray-500">
+                  {t('activeVariables')}
+                </div>
                 <div className="text-2xl font-bold text-green-600">
                   {enabledVariablesCount}
                 </div>
@@ -135,7 +136,7 @@ export default function VariablesPage({ user }: VariablesPageProps) {
                 </div>
                 <div className="ml-4">
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Variables
+                    {t('totalVariables')}
                   </dt>
                   <dd className="text-lg font-semibold text-gray-900">
                     {totalVariablesCount}
@@ -163,7 +164,7 @@ export default function VariablesPage({ user }: VariablesPageProps) {
                 </div>
                 <div className="ml-4">
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Active Variables
+                    {t('activeVariables')}
                   </dt>
                   <dd className="text-lg font-semibold text-green-600">
                     {enabledVariablesCount}
@@ -191,10 +192,10 @@ export default function VariablesPage({ user }: VariablesPageProps) {
                 </div>
                 <div className="ml-4">
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Stored Locally
+                    {t('storedLocally')}
                   </dt>
                   <dd className="text-lg font-semibold text-gray-600">
-                    Secure
+                    {t('secure')}
                   </dd>
                 </div>
               </div>
@@ -206,11 +207,11 @@ export default function VariablesPage({ user }: VariablesPageProps) {
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
-                Manage Variables
+                {t('manageVariables')}
               </h2>
               <div className="flex items-center space-x-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  Private & Secure
+                  {t('privateSecure')}
                 </span>
               </div>
             </div>
@@ -251,21 +252,19 @@ export default function VariablesPage({ user }: VariablesPageProps) {
             </div>
             <div className="ml-3 flex-1">
               <h3 className="text-sm font-medium text-blue-800">
-                How to use variables
+                {t('howToUse')}
               </h3>
               <div className="mt-2 text-sm text-blue-700">
                 <ul className="space-y-1">
                   <li>
-                    • Use{" "}
-                    <code className="bg-blue-100 px-1 rounded">{`{{variableName}}`}</code>{" "}
+                    • Use{' '}
+                    <code className="bg-blue-100 px-1 rounded">{`{{variableName}}`}</code>{' '}
                     syntax to reference variables
                   </li>
-                  <li>• Variables work in URLs, headers, and request bodies</li>
-                  <li>• All variables are stored locally in your browser</li>
-                  <li>
-                    • Use Import/Export to share variable sets with your team
-                  </li>
-                  <li>• Disabled variables won't be replaced in requests</li>
+                  <li>• {t('tipWorks')}</li>
+                  <li>• {t('tipStored')}</li>
+                  <li>• {t('tipImport')}</li>
+                  <li>• {t('tipDisabled')}</li>
                 </ul>
               </div>
             </div>
@@ -275,12 +274,12 @@ export default function VariablesPage({ user }: VariablesPageProps) {
         {totalVariablesCount === 0 && (
           <div className="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Common Variable Examples
+              {t('examplesTitle')}
             </h3>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-2">
-                  API Configuration
+                  {t('apiConfig')}
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div>
@@ -302,7 +301,7 @@ export default function VariablesPage({ user }: VariablesPageProps) {
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-2">
-                  Dynamic Values
+                  {t('dynamicValues')}
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div>
@@ -328,7 +327,7 @@ export default function VariablesPage({ user }: VariablesPageProps) {
                 onClick={addVariable}
                 className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
               >
-                Create your first variable →
+                {t('createFirst')} →
               </button>
             </div>
           </div>

@@ -1,5 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
   const supabaseResponse = NextResponse.next({ request });
@@ -17,11 +17,11 @@ export async function updateSession(request: NextRequest) {
           supabaseResponse.cookies.set(name, value, options);
         },
         remove(name, options) {
-          request.cookies.set({ name, value: "", ...options });
-          supabaseResponse.cookies.set(name, "", options);
+          request.cookies.set({ name, value: '', ...options });
+          supabaseResponse.cookies.set(name, '', options);
         },
       },
-    },
+    }
   );
 
   const {
@@ -29,21 +29,21 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isPrivatePage =
-    request.nextUrl.pathname.startsWith("/rest-client") ||
-    request.nextUrl.pathname.startsWith("/variables");
+    request.nextUrl.pathname.startsWith('/rest-client') ||
+    request.nextUrl.pathname.startsWith('/variables');
   const isAuthPage =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/signup");
+    request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname.startsWith('/signup');
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
 
   if (!user && isPrivatePage) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
 

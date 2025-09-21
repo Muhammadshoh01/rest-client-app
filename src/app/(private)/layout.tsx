@@ -1,7 +1,7 @@
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import { createClient } from '@/utils/supabase/server';
+import { redirect } from 'next/navigation';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 
 export default async function PrivateLayout({
   children,
@@ -14,10 +14,10 @@ export default async function PrivateLayout({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect('/login');
   }
 
-  const username = user?.email?.split("@")[0] || "";
+  const username = user?.email?.split('@')[0] || '';
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

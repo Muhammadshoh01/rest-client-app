@@ -1,4 +1,7 @@
+import { useTranslations } from 'next-intl';
+
 export default function Loading() {
+  const t = useTranslations();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center space-y-6">
@@ -10,21 +13,21 @@ export default function Loading() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-900">Loading...</h2>
-          <p className="text-gray-600">
-            Please wait while we prepare your content
-          </p>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {t('Loading.title')}
+          </h2>
+          <p className="text-gray-600">{t('Loading.description')}</p>
         </div>
 
         <div className="flex justify-center space-x-1">
           <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
           <div
             className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"
-            style={{ animationDelay: "0.1s" }}
+            style={{ animationDelay: '0.1s' }}
           ></div>
           <div
             className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"
-            style={{ animationDelay: "0.2s" }}
+            style={{ animationDelay: '0.2s' }}
           ></div>
         </div>
       </div>

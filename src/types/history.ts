@@ -1,15 +1,14 @@
-// types/history.ts
 export interface RequestHistoryRecord {
   id: string;
   user_id: string;
-  timestamp: string; // ISO string
+  timestamp: string;
   method: string;
   url: string;
-  endpoint: string; // Normalized endpoint for grouping
+  endpoint: string;
   status: number;
-  duration: number; // in milliseconds
-  request_size: number; // in bytes
-  response_size: number; // in bytes
+  duration: number;
+  request_size: number;
+  response_size: number;
   error_details?: string;
   headers: Array<{
     key: string;

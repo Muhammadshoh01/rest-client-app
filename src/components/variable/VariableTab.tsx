@@ -1,15 +1,16 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Variable } from "@/types/rest-client";
+import { useState } from 'react';
+import { Variable } from '@/types/rest-client';
+import { useTranslations } from 'next-intl';
 
 interface VariablesTabProps {
   variables: Variable[];
   onAddVariable: () => void;
   onUpdateVariable: (
     id: string,
-    field: "name" | "value" | "description" | "enabled",
-    value: string | boolean,
+    field: 'name' | 'value' | 'description' | 'enabled',
+    value: string | boolean
   ) => void;
   onRemoveVariable: (id: string) => void;
   onImportVariables: (variables: Variable[]) => void;
@@ -24,31 +25,33 @@ export default function VariablesTab({
   onImportVariables,
   onExportVariables,
 }: VariablesTabProps) {
-  const [importText, setImportText] = useState("");
+  const [importText, setImportText] = useState('');
   const [showImport, setShowImport] = useState(false);
+
+  const t = useTranslations('VariablesTab');
 
   const handleImport = () => {
     try {
       const parsed = JSON.parse(importText);
       if (Array.isArray(parsed)) {
         const validVariables = parsed
-          .filter((v) => v && typeof v === "object" && v.name && v.value)
+          .filter((v) => v && typeof v === 'object' && v.name && v.value)
           .map((v) => ({
             id: Date.now().toString() + Math.random(),
             name: v.name,
             value: v.value,
-            description: v.description || "",
+            description: v.description || '',
             enabled: v.enabled !== false,
           }));
 
         onImportVariables(validVariables);
-        setImportText("");
+        setImportText('');
         setShowImport(false);
       } else {
-        alert("Invalid format. Expected an array of variables.");
+        alert(t('invalidArray'));
       }
     } catch (error) {
-      alert("Invalid JSON format");
+      alert(t('invalidJson'));
     }
   };
 
@@ -63,16 +66,16 @@ export default function VariablesTab({
     navigator.clipboard
       .writeText(JSON.stringify(exportData, null, 2))
       .then(() => {
-        alert("Variables exported to clipboard!");
+        alert(t('exportSuccess'));
       })
       .catch(() => {
-        const textArea = document.createElement("textarea");
+        const textArea = document.createElement('textarea');
         textArea.value = JSON.stringify(exportData, null, 2);
         document.body.appendChild(textArea);
         textArea.select();
-        document.execCommand("copy");
+        document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert("Variables exported to clipboard!");
+        alert(t('exportSuccess'));
       });
   };
 
@@ -80,7 +83,9 @@ export default function VariablesTab({
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <span className="text-sm font-medium text-gray-700">Variables</span>
+          <span className="text-sm font-medium text-gray-700">
+            {t('title')}
+          </span>
           <p className="text-xs text-gray-500 mt-1">
             Use variables with {`{{variableName}}`} syntax in URL, headers, or
             body
@@ -91,19 +96,19 @@ export default function VariablesTab({
             onClick={() => setShowImport(!showImport)}
             className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
           >
-            Import
+            {t('import')}
           </button>
           <button
             onClick={exportToClipboard}
             className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
           >
-            Export
+            {t('export')}
           </button>
           <button
             onClick={onAddVariable}
             className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 font-medium transition-colors"
           >
-            + Add Variable
+            + {t('addVariable')}
           </button>
         </div>
       </div>
@@ -112,7 +117,7 @@ export default function VariablesTab({
         <div className="p-4 bg-gray-50 rounded-lg space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Import Variables (JSON)
+              {t('importLabel')}
             </label>
             <textarea
               value={importText}
@@ -133,16 +138,16 @@ export default function VariablesTab({
               onClick={handleImport}
               className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
             >
-              Import
+              {t('import')}
             </button>
             <button
               onClick={() => {
                 setShowImport(false);
-                setImportText("");
+                setImportText('');
               }}
               className="px-4 py-2 bg-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-400"
             >
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -159,7 +164,7 @@ export default function VariablesTab({
                 type="checkbox"
                 checked={variable.enabled}
                 onChange={(e) =>
-                  onUpdateVariable(variable.id, "enabled", e.target.checked)
+                  onUpdateVariable(variable.id, 'enabled', e.target.checked)
                 }
                 className="mt-1 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
@@ -167,28 +172,28 @@ export default function VariablesTab({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Variable Name
+                      {t('variableName')}
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g., API_KEY, BASE_URL"
+                      placeholder={t('variableNamePlaceholder')}
                       value={variable.name}
                       onChange={(e) =>
-                        onUpdateVariable(variable.id, "name", e.target.value)
+                        onUpdateVariable(variable.id, 'name', e.target.value)
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Value
+                      {t('value')}
                     </label>
                     <input
                       type="text"
-                      placeholder="Variable value"
+                      placeholder={t('valuePlaceholder')}
                       value={variable.value}
                       onChange={(e) =>
-                        onUpdateVariable(variable.id, "value", e.target.value)
+                        onUpdateVariable(variable.id, 'value', e.target.value)
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                     />
@@ -196,17 +201,17 @@ export default function VariablesTab({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Description (optional)
+                    {t('description')}
                   </label>
                   <input
                     type="text"
-                    placeholder="Brief description of this variable"
-                    value={variable.description || ""}
+                    placeholder={t('descriptionPlaceholder')}
+                    value={variable.description || ''}
                     onChange={(e) =>
                       onUpdateVariable(
                         variable.id,
-                        "description",
-                        e.target.value,
+                        'description',
+                        e.target.value
                       )
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
@@ -214,7 +219,7 @@ export default function VariablesTab({
                 </div>
                 {variable.name && (
                   <div className="text-xs text-gray-600 bg-white px-2 py-1 rounded border">
-                    <span className="font-medium">Usage:</span>{" "}
+                    <span className="font-medium">{t('usage')}:</span>{' '}
                     <code className="bg-gray-100 px-1 rounded">{`{{${variable.name}}}`}</code>
                   </div>
                 )}
@@ -222,7 +227,7 @@ export default function VariablesTab({
               <button
                 onClick={() => onRemoveVariable(variable.id)}
                 className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
-                title="Remove variable"
+                title={t('removeVariable')}
               >
                 <svg
                   className="w-4 h-4"
@@ -259,15 +264,13 @@ export default function VariablesTab({
                 d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
               />
             </svg>
-            <p className="font-medium">No variables defined</p>
-            <p className="text-sm">
-              Create variables to reuse values across your requests
-            </p>
+            <p className="font-medium">{t('noVariables')}</p>
+            <p className="text-sm">{t('createTip')}</p>
             <button
               onClick={onAddVariable}
               className="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
             >
-              Add your first variable
+              {t('addFirstVariable')}
             </button>
           </div>
         </div>
@@ -276,22 +279,22 @@ export default function VariablesTab({
       {variables.length > 0 && (
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <div className="text-sm text-blue-800">
-            <strong>Tips:</strong>
+            <strong>{t('tipsTitle')}:</strong>
             <ul className="mt-2 space-y-1 text-xs">
               <li>
-                • Use variables in URL:{" "}
+                • {t('tipUrl')}{' '}
                 <code className="bg-blue-100 px-1 rounded">
                   https://api.example.com/{`{{endpoint}}`}
                 </code>
               </li>
               <li>
-                • Use in headers:{" "}
+                • {t('tipHeaders')}{' '}
                 <code className="bg-blue-100 px-1 rounded">
                   Bearer {`{{token}}`}
                 </code>
               </li>
               <li>
-                • Use in JSON body:{" "}
+                • {t('tipJson')}{' '}
                 <code className="bg-blue-100 px-1 rounded">{`{"key": "{{value}}"}`}</code>
               </li>
             </ul>

@@ -1,11 +1,11 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
-import VariablesPage from "@/components/variable/VariablePage";
+import { redirect } from 'next/navigation';
+import { createClient } from '@/utils/supabase/server';
+import VariablesPage from '@/components/variable/VariablePage';
 
 export const metadata = {
-  title: "Variables | REST Client",
+  title: 'Variables | REST Client',
   description:
-    "Manage your environment variables and reusable values for API requests",
+    'Manage your environment variables and reusable values for API requests',
 };
 
 export default async function Variables() {
@@ -15,7 +15,7 @@ export default async function Variables() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect('/login');
   }
 
   return <VariablesPage user={user} />;

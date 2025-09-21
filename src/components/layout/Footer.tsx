@@ -1,12 +1,14 @@
-import Link from "next/link";
-import { Github } from "lucide-react";
+import Link from 'next/link';
+import { Github } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function Footer() {
+  const t = useTranslations();
   const currentYear = new Date().getFullYear();
   const authors = [
-    { username: "muhammadshoh01", name: "Muhammad" },
-    { username: "yelantsevv", name: "Yelantsev" },
-    { username: "hitman46923", name: "Hitman" },
+    { username: 'muhammadshoh01', name: 'Muhammad' },
+    { username: 'yelantsevv', name: 'Yelantsev' },
+    { username: 'hitman46923', name: 'Hitman' },
   ];
 
   return (
@@ -14,7 +16,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col items-center space-y-4 mb-6">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-            Created by
+            {t('createdBy')}
           </h3>
           <div className="flex flex-wrap justify-center gap-6">
             {authors.map((author, index) => (
@@ -41,7 +43,9 @@ export default function Footer() {
 
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 pt-6 border-t border-gray-200">
           <div className="flex items-center text-sm text-gray-500">
-            <span>© {currentYear} REST Client Application</span>
+            <span>
+              © {currentYear} {t('appName')}
+            </span>
           </div>
           <Link
             href="https://rs.school/"
@@ -53,7 +57,7 @@ export default function Footer() {
               RS
             </div>
             <span className="text-sm font-medium group-hover:underline">
-              Rolling Scopes School
+              {t('rollingSchool')}
             </span>
           </Link>
         </div>

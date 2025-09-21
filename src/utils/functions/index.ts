@@ -1,8 +1,8 @@
-import { RequestData } from "@/types/rest-client";
+import { RequestData } from '@/types/rest-client';
 
 export const generateCode = (
   request: RequestData,
-  language: string,
+  language: string
 ): string => {
   const { method, url, headers, body } = request;
   const enabledHeaders = headers.filter((h) => h.enabled && h.key && h.value);
@@ -12,45 +12,45 @@ export const generateCode = (
   }
 
   switch (language) {
-    case "curl":
+    case 'curl':
       let curlCmd = `curl -X ${method}`;
       enabledHeaders.forEach((h) => {
         curlCmd += ` \\\n  -H "${h.key}: ${h.value}"`;
       });
-      if (body && ["POST", "PUT", "PATCH"].includes(method)) {
+      if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
         curlCmd += ` \\\n  -d '${body}'`;
       }
       curlCmd += ` \\\n  "${url}"`;
       return curlCmd;
 
-    case "fetch":
+    case 'fetch':
       const fetchHeaders =
         enabledHeaders.length > 0
           ? `    headers: {\n${enabledHeaders
               .map((h) => `      '${h.key}': '${h.value}'`)
-              .join(",\n")}\n    },`
-          : "";
+              .join(',\n')}\n    },`
+          : '';
       const fetchBody =
-        body && ["POST", "PUT", "PATCH"].includes(method)
+        body && ['POST', 'PUT', 'PATCH'].includes(method)
           ? `    body: ${JSON.stringify(body)},`
-          : "";
+          : '';
       return `fetch('${url}', {
-  method: '${method}',${fetchHeaders ? "\n" + fetchHeaders : ""}${
-    fetchBody ? "\n" + fetchBody : ""
+  method: '${method}',${fetchHeaders ? '\n' + fetchHeaders : ''}${
+    fetchBody ? '\n' + fetchBody : ''
   }
 })
   .then(response => response.json())
   .then(data => console.log(data))
   .catch(error => console.error('Error:', error));`;
 
-    case "xhr":
+    case 'xhr':
       const xhrHeaders = enabledHeaders
         .map((h) => `xhr.setRequestHeader('${h.key}', '${h.value}');`)
-        .join("\n");
+        .join('\n');
       const xhrBody =
-        body && ["POST", "PUT", "PATCH"].includes(method)
+        body && ['POST', 'PUT', 'PATCH'].includes(method)
           ? `xhr.send(${JSON.stringify(body)});`
-          : "xhr.send();";
+          : 'xhr.send();';
       return `const xhr = new XMLHttpRequest();
 xhr.open('${method}', '${url}');
 ${xhrHeaders}
@@ -67,23 +67,23 @@ xhr.onreadystatechange = function() {
 
 ${xhrBody}`;
 
-    case "nodejs":
-      const isHttps = url.startsWith("https://");
-      const protocol = isHttps ? "https" : "http";
+    case 'nodejs':
+      const isHttps = url.startsWith('https://');
+      const protocol = isHttps ? 'https' : 'http';
       const nodeHeaders =
         enabledHeaders.length > 0
           ? `    headers: {\n${enabledHeaders
               .map((h) => `      '${h.key}': '${h.value}'`)
-              .join(",\n")}\n    },`
-          : "";
+              .join(',\n')}\n    },`
+          : '';
       const nodeBody =
-        body && ["POST", "PUT", "PATCH"].includes(method) ? body : null;
+        body && ['POST', 'PUT', 'PATCH'].includes(method) ? body : null;
 
       return `const ${protocol} = require('${protocol}');
 const url = require('url');
 
 const options = {
-  method: '${method}',${nodeHeaders ? "\n" + nodeHeaders : ""}
+  method: '${method}',${nodeHeaders ? '\n' + nodeHeaders : ''}
 };
 
 const req = ${protocol}.request('${url}', options, (res) => {
@@ -103,20 +103,20 @@ req.on('error', (error) => {
   console.error('Error:', error);
 });
 
-${nodeBody ? `req.write(${JSON.stringify(nodeBody)});` : ""}
+${nodeBody ? `req.write(${JSON.stringify(nodeBody)});` : ''}
 req.end();`;
 
-    case "python":
+    case 'python':
       const pythonHeaders =
         enabledHeaders.length > 0
           ? `headers = {\n${enabledHeaders
               .map((h) => `    '${h.key}': '${h.value}'`)
-              .join(",\n")}\n}`
-          : "headers = {}";
+              .join(',\n')}\n}`
+          : 'headers = {}';
       const pythonData =
-        body && ["POST", "PUT", "PATCH"].includes(method)
+        body && ['POST', 'PUT', 'PATCH'].includes(method)
           ? `, data=${JSON.stringify(body)}`
-          : "";
+          : '';
       return `import requests
 import json
 
@@ -135,16 +135,16 @@ try:
 except requests.exceptions.RequestException as e:
     print(f"Error: {e}")`;
 
-    case "java":
+    case 'java':
       const javaHeaders = enabledHeaders
         .map((h) => `        request.header("${h.key}", "${h.value}");`)
-        .join("\n");
+        .join('\n');
       const javaBody =
-        body && ["POST", "PUT", "PATCH"].includes(method)
+        body && ['POST', 'PUT', 'PATCH'].includes(method)
           ? `        request.POST(HttpRequest.BodyPublishers.ofString(${JSON.stringify(
-              body,
+              body
             )}));`
-          : "";
+          : '';
 
       return `import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -176,24 +176,24 @@ ${javaBody}
     }
 }`;
 
-    case "csharp":
+    case 'csharp':
       const csharpHeaders = enabledHeaders
         .map(
           (h) =>
-            `            client.DefaultRequestHeaders.Add("${h.key}", "${h.value}");`,
+            `            client.DefaultRequestHeaders.Add("${h.key}", "${h.value}");`
         )
-        .join("\n");
+        .join('\n');
       const csharpBody =
-        body && ["POST", "PUT", "PATCH"].includes(method)
+        body && ['POST', 'PUT', 'PATCH'].includes(method)
           ? `            var content = new StringContent(${JSON.stringify(
-              body,
+              body
             )}, Encoding.UTF8, "application/json");
             var response = await client.${
-              method === "POST"
-                ? "PostAsync"
-                : method === "PUT"
-                  ? "PutAsync"
-                  : "PatchAsync"
+              method === 'POST'
+                ? 'PostAsync'
+                : method === 'PUT'
+                  ? 'PutAsync'
+                  : 'PatchAsync'
             }("${url}", content);`
           : `            var response = await client.${method}Async("${url}");`;
 
@@ -227,14 +227,14 @@ ${csharpBody}
     }
 }`;
 
-    case "go":
+    case 'go':
       const goHeaders = enabledHeaders
         .map((h) => `    req.Header.Set("${h.key}", "${h.value}")`)
-        .join("\n");
+        .join('\n');
       const goBody =
-        body && ["POST", "PUT", "PATCH"].includes(method)
+        body && ['POST', 'PUT', 'PATCH'].includes(method)
           ? `strings.NewReader(${JSON.stringify(body)})`
-          : "nil";
+          : 'nil';
 
       return `package main
 
@@ -282,7 +282,7 @@ export const encodeBase64 = (str: string): string => {
   return btoa(
     encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
       return String.fromCharCode(parseInt(p1, 16));
-    }),
+    })
   );
 };
 
@@ -290,14 +290,14 @@ export const decodeBase64 = (str: string): string => {
   try {
     return decodeURIComponent(
       atob(str)
-        .split("")
+        .split('')
         .map((c) => {
-          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         })
-        .join(""),
+        .join('')
     );
   } catch {
-    return "";
+    return '';
   }
 };
 

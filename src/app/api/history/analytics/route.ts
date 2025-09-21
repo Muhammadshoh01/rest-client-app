@@ -5,7 +5,6 @@ import { AnalyticsData } from '@/types/history';
 export async function GET() {
   try {
     const supabase = await createClient();
-    // Get the authenticated user
     const {
       data: { user },
       error: authError,
@@ -15,7 +14,6 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all request history for analytics
     const { data: history, error } = await supabase
       .from('request_history')
       .select('method, status, duration, endpoint')
@@ -29,7 +27,6 @@ export async function GET() {
       );
     }
 
-    // Calculate analytics
     const totalRequests = history.length;
     const averageResponseTime =
       totalRequests > 0
@@ -43,7 +40,6 @@ export async function GET() {
       totalRequests > 0 ? (successRequests.length / totalRequests) * 100 : 0;
     const errorCount = history.filter((req) => req.status >= 400).length;
 
-    // Count methods
     const methodCounts = history.reduce(
       (acc, req) => {
         acc[req.method] = (acc[req.method] || 0) + 1;
@@ -57,7 +53,6 @@ export async function GET() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Count endpoints
     const endpointCounts = history.reduce(
       (acc, req) => {
         acc[req.endpoint] = (acc[req.endpoint] || 0) + 1;
@@ -71,7 +66,6 @@ export async function GET() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Count status codes
     const statusCounts = history.reduce(
       (acc, req) => {
         acc[req.status] = (acc[req.status] || 0) + 1;

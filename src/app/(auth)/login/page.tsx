@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { login } from "./actions";
-import Link from "next/link";
+import { useState } from 'react';
+import { login } from './actions';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const t = useTranslations('Login');
 
   return (
     <div className="max-w-md w-full space-y-8">
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Sign In</h2>
-          <p className="mt-2 text-gray-600">
-            Welcome back! Please sign in to your account.
-          </p>
+          <h2 className="text-3xl font-bold text-gray-900">{t('title')}</h2>
+          <p className="mt-2 text-gray-600">{t('subtitle')}</p>
         </div>
 
         <form
@@ -27,7 +27,7 @@ export default function LoginForm() {
               await login(formData);
             } catch (err: unknown) {
               if (err instanceof Error) {
-                setError(err.message || "Login failed");
+                setError(err.message || t('error'));
               }
               setLoading(false);
             }
@@ -45,13 +45,13 @@ export default function LoginForm() {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              Email
+              {t('email')}
             </label>
             <input
               id="email"
               type="email"
               name="email"
-              placeholder="Enter your email"
+              placeholder={t('email_placeholder')}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
@@ -62,13 +62,13 @@ export default function LoginForm() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
-              Password
+              {t('password')}
             </label>
             <input
               id="password"
               type="password"
               name="password"
-              placeholder="Enter your password"
+              placeholder={t('password_placeholder')}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
@@ -79,18 +79,18 @@ export default function LoginForm() {
             disabled={loading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? t('submit_loading') : t('submit')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            {t('no_account')}{' '}
             <Link
               href="/signup"
               className="font-medium text-blue-600 hover:text-blue-500"
             >
-              Sign up
+              {t('signup')}
             </Link>
           </p>
         </div>

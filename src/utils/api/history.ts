@@ -1,13 +1,11 @@
-// utils/api/history.ts
-import { RequestHistoryRecord, AnalyticsData } from "../../types/history";
+import { RequestHistoryRecord, AnalyticsData } from '../../types/history';
 export class HistoryAPI {
   private baseUrl: string;
 
-  constructor(baseUrl: string = "/api") {
+  constructor(baseUrl: string = '/api') {
     this.baseUrl = baseUrl;
   }
 
-  // Save a request to history (called after each request execution)
   async saveRequest(requestData: {
     method: string;
     url: string;
@@ -23,9 +21,9 @@ export class HistoryAPI {
       const endpoint = this.extractEndpoint(requestData.url);
 
       const response = await fetch(`${this.baseUrl}/history`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           ...requestData,
@@ -38,17 +36,15 @@ export class HistoryAPI {
         throw new Error(`Failed to save request: ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Error saving request to history:", error);
-      // Don't throw - we don't want to break the user's request flow
+      console.error('Error saving request to history:', error);
     }
   }
 
-  // Get request history for the authenticated user
   async getHistory(): Promise<RequestHistoryRecord[]> {
     const response = await fetch(`${this.baseUrl}/history`, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
@@ -60,12 +56,11 @@ export class HistoryAPI {
     return data.history || [];
   }
 
-  // Get analytics data for the authenticated user
   async getAnalytics(): Promise<AnalyticsData> {
     const response = await fetch(`${this.baseUrl}/history/analytics`, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
@@ -77,24 +72,21 @@ export class HistoryAPI {
     return data.analytics;
   }
 
-  // Helper method to extract endpoint from URL for grouping
   private extractEndpoint(url: string): string {
     try {
       const urlObj = new URL(url);
       let pathname = urlObj.pathname;
 
-      // Replace numeric IDs with placeholders for grouping
-      pathname = pathname.replace(/\/\d+/g, "/{id}");
+      pathname = pathname.replace(/\/\d+/g, '/{id}');
 
-      // Replace UUIDs with placeholders
       pathname = pathname.replace(
         /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
-        "/{uuid}",
+        '/{uuid}'
       );
 
       return pathname;
     } catch (error) {
-      return url; // Fallback to full URL if parsing fails
+      return url;
     }
   }
 }

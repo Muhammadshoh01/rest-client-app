@@ -1,5 +1,6 @@
-import Link from "next/link";
-import { Settings, Clock, Database } from "lucide-react";
+import Link from 'next/link';
+import { Settings, Clock, Database } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface MainPageContentProps {
   isAuthenticated: boolean;
@@ -10,24 +11,28 @@ export default function MainPageContent({
   isAuthenticated,
   username,
 }: MainPageContentProps) {
+  const t = useTranslations();
+
   if (!isAuthenticated) {
     return (
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           <div className="bg-white rounded-lg shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Welcome!</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">
+              {t('welcome')}
+            </h1>
             <div className="space-y-4">
               <Link
                 href="/login"
                 className="w-full inline-flex justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
-                Sign In
+                {t('signIn')}
               </Link>
               <Link
                 href="/signup"
                 className="w-full inline-flex justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
-                Sign Up
+                {t('signUp')}
               </Link>
             </div>
           </div>
@@ -42,11 +47,9 @@ export default function MainPageContent({
         <div className="text-center mb-12">
           <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome Back, {username}!
+              {t('welcomeBack', { username: username || 'User' })}
             </h1>
-            <p className="text-gray-600">
-              Access your REST client and manage your API requests
-            </p>
+            <p className="text-gray-600">{t('accessDescription')}</p>
           </div>
         </div>
 
@@ -59,10 +62,10 @@ export default function MainPageContent({
               <Database className="h-6 w-6 text-blue-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              REST Client
+              {t('restClient')}
             </h3>
             <p className="text-gray-600 text-sm">
-              Test and interact with REST APIs
+              {t('restClientDescription')}
             </p>
           </Link>
 
@@ -74,11 +77,9 @@ export default function MainPageContent({
               <Clock className="h-6 w-6 text-green-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              History
+              {t('history')}
             </h3>
-            <p className="text-gray-600 text-sm">
-              View your previous API requests
-            </p>
+            <p className="text-gray-600 text-sm">{t('historyDescription')}</p>
           </Link>
 
           <Link
@@ -89,11 +90,9 @@ export default function MainPageContent({
               <Settings className="h-6 w-6 text-purple-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Variables
+              {t('variables')}
             </h3>
-            <p className="text-gray-600 text-sm">
-              Manage your environment variables
-            </p>
+            <p className="text-gray-600 text-sm">{t('variablesDescription')}</p>
           </Link>
         </div>
       </div>

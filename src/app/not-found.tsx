@@ -1,8 +1,10 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export default function NotFound() {
+  const t = useTranslations();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-md w-full space-y-8 text-center px-4">
@@ -23,14 +25,13 @@ export default function NotFound() {
         </div>
 
         <div>
-          <h1 className="text-6xl font-bold text-gray-900 mb-2">404</h1>
+          <h1 className="text-6xl font-bold text-gray-900 mb-2">
+            {t('NotFound.title')}
+          </h1>
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-            Page Not Found
+            {t('NotFound.subtitle')}
           </h2>
-          <p className="text-gray-600 mb-8">
-            Sorry, we couldn't find the page you're looking for. It might have
-            been moved, deleted, or you entered the wrong URL.
-          </p>
+          <p className="text-gray-600 mb-8">{t('NotFound.description')}</p>
         </div>
 
         <div className="space-y-4">
@@ -51,7 +52,7 @@ export default function NotFound() {
                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
               />
             </svg>
-            Go Home
+            {t('NotFound.go_home')}
           </Link>
 
           <button
@@ -71,24 +72,26 @@ export default function NotFound() {
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Go Back
+            {t('NotFound.go_back')}
           </button>
         </div>
 
         <div className="pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-500 mb-3">Quick Links:</p>
+          <p className="text-sm text-gray-500 mb-3">
+            {t('NotFound.quick_links')}
+          </p>
           <div className="flex justify-center space-x-6">
             <Link
               href="/login"
               className="text-sm text-indigo-600 hover:text-indigo-800"
             >
-              Login
+              {t('NotFound.login')}
             </Link>
             <Link
               href="/signup"
               className="text-sm text-indigo-600 hover:text-indigo-800"
             >
-              Sign Up
+              {t('NotFound.signup')}
             </Link>
           </div>
         </div>

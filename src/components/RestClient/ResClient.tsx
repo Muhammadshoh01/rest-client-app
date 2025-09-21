@@ -1,46 +1,46 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { User } from "@supabase/supabase-js";
-import { encodeBase64, decodeBase64 } from "@/utils/functions";
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { User } from '@supabase/supabase-js';
+import { encodeBase64, decodeBase64 } from '@/utils/functions';
 import {
   Header,
   RequestData,
   ResponseData,
   Variable,
-} from "@/types/rest-client";
-import { HTTP_METHODS } from "@/utils/constants/vars";
+} from '@/types/rest-client';
+import { HTTP_METHODS } from '@/utils/constants/vars';
 import {
   saveVariablesToStorage,
   loadVariablesFromStorage,
   replaceVariables,
   hasVariables,
-} from "@/utils/functions/variables";
-import { useRequestHistory } from "@/utils/hooks/useRequestHistory";
+} from '@/utils/functions/variables';
+import { useRequestHistory } from '@/utils/hooks/useRequestHistory';
 
-import RequestForm from "./RequestForm";
-import TabNavigation from "./TabNavigation";
-import RequestBodyTab from "./RequestBodyTab";
-import HeadersTab from "./HeadersTab";
-import CodeTab from "./CodeTab";
-import ResponseSection from "./ResponseSection";
-import VariablePreview from "@/components/variable/variablePreview";
+import RequestForm from './RequestForm';
+import TabNavigation from './TabNavigation';
+import RequestBodyTab from './RequestBodyTab';
+import HeadersTab from './HeadersTab';
+import CodeTab from './CodeTab';
+import ResponseSection from './ResponseSection';
+import VariablePreview from '@/components/variable/variablePreview';
+import { useTranslations } from 'next-intl';
 
-const VariablesTab = lazy(() => import("@/components/variable/VariableTab"));
+const VariablesTab = lazy(() => import('@/components/variable/VariableTab'));
 function calculateRequestSize(body: BodyInit | null | undefined): number {
   if (!body) return 0;
 
-  if (typeof body === "string") {
+  if (typeof body === 'string') {
     return new TextEncoder().encode(body).length;
   }
 
   if (body instanceof FormData) {
-    // Approximate size for FormData (not exact but reasonable estimate)
     let size = 0;
     for (const [key, value] of body) {
       size += new TextEncoder().encode(key).length;
-      if (typeof value === "string") {
+      if (typeof value === 'string') {
         size += new TextEncoder().encode(value).length;
       } else if (value instanceof File) {
         size += value.size;
@@ -65,43 +65,25 @@ function calculateRequestSize(body: BodyInit | null | undefined): number {
     return body.size;
   }
 
-  // Fallback for other types
   return new TextEncoder().encode(String(body)).length;
 }
 
 function getInitialRequestFromUrl(
   pathname: string,
-  searchParams: URLSearchParams,
+  searchParams: URLSearchParams
 ): RequestData {
-  console.log("🔍 Parsing URL - pathname:", pathname);
-  console.log(
-    "🔍 Parsing URL - searchParams:",
-    Array.from(searchParams.entries()),
-  );
 
-  const pathParts = pathname.split("/").filter(Boolean);
-  console.log("🔍 Path parts:", pathParts);
+  const pathParts = pathname.split('/').filter(Boolean);
 
-  if (pathParts.length >= 2 && pathParts[0] === "rest-client") {
+  if (pathParts.length >= 2 && pathParts[0] === 'rest-client') {
     const method = pathParts[1];
     const encodedUrl = pathParts[2];
     const encodedBody = pathParts[3];
 
-    console.log(
-      "🔍 Extracted - method:",
-      method,
-      "encodedUrl:",
-      encodedUrl,
-      "encodedBody:",
-      encodedBody,
-    );
-
     if (HTTP_METHODS.includes(method.toUpperCase())) {
       try {
-        const decodedUrl = encodedUrl ? decodeBase64(encodedUrl) : "";
-        const decodedBody = encodedBody ? decodeBase64(encodedBody) : "";
-
-        console.log("🔍 Decoded - URL:", decodedUrl, "Body:", decodedBody);
+        const decodedUrl = encodedUrl ? decodeBase64(encodedUrl) : '';
+        const decodedBody = encodedBody ? decodeBase64(encodedBody) : '';
 
         const urlHeaders: Header[] = [];
         let headerId = 1;
@@ -117,15 +99,8 @@ function getInitialRequestFromUrl(
         });
 
         if (urlHeaders.length === 0) {
-          urlHeaders.push({ id: "1", key: "", value: "", enabled: true });
+          urlHeaders.push({ id: '1', key: '', value: '', enabled: true });
         }
-
-        console.log("🔍 Final parsed request:", {
-          method: method.toUpperCase(),
-          url: decodedUrl,
-          body: decodedBody,
-          headers: urlHeaders,
-        });
 
         return {
           method: method.toUpperCase(),
@@ -134,21 +109,18 @@ function getInitialRequestFromUrl(
           body: decodedBody,
         };
       } catch (error) {
-        console.error("❌ Error decoding URL parts:", error);
+        console.error('❌ Error decoding URL parts:', error);
       }
     } else {
-      console.log("🔍 Method not in HTTP_METHODS:", method);
     }
   } else {
-    console.log("🔍 Not a rest-client route or insufficient path parts");
   }
 
-  console.log("🔍 Returning default request");
   return {
-    method: "GET",
-    url: "",
-    headers: [{ id: "1", key: "", value: "", enabled: true }],
-    body: "",
+    method: 'GET',
+    url: '',
+    headers: [{ id: '1', key: '', value: '', enabled: true }],
+    body: '',
   };
 }
 
@@ -157,6 +129,7 @@ let globalRequest: RequestData | null = null;
 let globalVariables: Variable[] = [];
 
 export default function RestClient({ user }: { user: User }) {
+  const t = useTranslations('RestClient');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -165,14 +138,11 @@ export default function RestClient({ user }: { user: User }) {
   const variablesLoaded = useRef(false);
 
   renderCount.current++;
-  console.log(`🔄 RestClient render #${renderCount.current}`);
 
   const [request, setRequest] = useState<RequestData>(() => {
     if (globalRequest) {
-      console.log("🔄 Restoring request from global state");
       return globalRequest;
     }
-    console.log("🚀 Initializing request state from URL");
     const initialRequest = getInitialRequestFromUrl(pathname, searchParams);
     globalRequest = initialRequest;
     return initialRequest;
@@ -180,30 +150,26 @@ export default function RestClient({ user }: { user: User }) {
 
   const [response, setResponse] = useState<ResponseData | null>(() => {
     if (globalResponse) {
-      console.log("🔄 Restoring response from global state");
       return globalResponse;
     }
-    console.log("🚀 Initializing response state to null");
     return null;
   });
 
   const [variables, setVariables] = useState<Variable[]>(() => {
-    console.log("🚀 Initializing variables state");
     return globalVariables;
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "body" | "headers" | "variables" | "code"
-  >("body");
-  const [selectedLanguage, setSelectedLanguage] = useState("curl");
-  const [bodyFormat, setBodyFormat] = useState<"json" | "text">("json");
+    'body' | 'headers' | 'variables' | 'code'
+  >('body');
+  const [selectedLanguage, setSelectedLanguage] = useState('curl');
+  const [bodyFormat, setBodyFormat] = useState<'json' | 'text'>('json');
   const { saveRequestToHistory, isSaving: isSavingToHistory } =
     useRequestHistory(user);
 
   useEffect(() => {
     if (user && !variablesLoaded.current) {
-      console.log("🔄 Loading variables from localStorage");
       const savedVariables = loadVariablesFromStorage();
       setVariables(savedVariables);
       globalVariables = savedVariables;
@@ -222,18 +188,14 @@ export default function RestClient({ user }: { user: User }) {
 
   useEffect(() => {
     if (user && variablesLoaded.current) {
-      console.log("💾 Saving variables to localStorage");
       saveVariablesToStorage(variables);
       globalVariables = variables;
     }
   }, [variables, user]);
 
   useEffect(() => {
-    // Re-parse URL when pathname or searchParams change
-    console.log("🔄 URL changed, re-parsing request data");
     const newRequest = getInitialRequestFromUrl(pathname, searchParams);
 
-    // Only update if the request data is actually different
     const isDifferent =
       newRequest.method !== request.method ||
       newRequest.url !== request.url ||
@@ -241,20 +203,15 @@ export default function RestClient({ user }: { user: User }) {
       JSON.stringify(newRequest.headers) !== JSON.stringify(request.headers);
 
     if (isDifferent) {
-      console.log("🔄 Request data changed, updating state");
       setRequest(newRequest);
       globalRequest = newRequest;
 
-      // Clear response when navigating to a new request
       setResponse(null);
       globalResponse = null;
     }
   }, [pathname, searchParams]);
 
-  console.log(`📊 Current response state:`, response ? "HAS_RESPONSE" : "NULL");
-
   const updateUrl = (requestData: RequestData) => {
-    console.log("🔗 Updating URL...");
     if (!requestData.url.trim()) {
       return;
     }
@@ -262,7 +219,7 @@ export default function RestClient({ user }: { user: User }) {
     const encodedUrl = encodeBase64(requestData.url);
     const encodedBody = requestData.body.trim()
       ? encodeBase64(requestData.body)
-      : "";
+      : '';
 
     let path = `/rest-client/${requestData.method}/${encodedUrl}`;
     if (encodedBody) {
@@ -279,14 +236,12 @@ export default function RestClient({ user }: { user: User }) {
     const queryString = queryParams.toString();
     const fullUrl = queryString ? `${path}?${queryString}` : path;
 
-    console.log("🔗 New URL:", fullUrl);
     router.replace(fullUrl, { scroll: false });
   };
   const executeRequest = async () => {
-    console.log("🚀 Starting request execution...");
 
     if (!request.url.trim()) {
-      alert("Please enter a URL");
+      alert('Please enter a URL');
       return;
     }
 
@@ -295,7 +250,6 @@ export default function RestClient({ user }: { user: User }) {
     setIsLoading(true);
     const startTime = Date.now();
 
-    // let fetchOptions: RequestInit;
     let resolvedUrl: string;
     let requestSize = 0;
 
@@ -303,7 +257,6 @@ export default function RestClient({ user }: { user: User }) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      // Replace variables in URL, headers, and body
       resolvedUrl = replaceVariables(request.url, variables);
       const headers: Record<string, string> = {};
 
@@ -319,11 +272,11 @@ export default function RestClient({ user }: { user: User }) {
         method: request.method,
         headers,
         signal: controller.signal,
-        mode: "cors",
+        mode: 'cors',
       };
 
       if (
-        ["POST", "PUT", "PATCH"].includes(request.method) &&
+        ['POST', 'PUT', 'PATCH'].includes(request.method) &&
         request.body.trim()
       ) {
         const resolvedBody = replaceVariables(request.body, variables);
@@ -331,7 +284,6 @@ export default function RestClient({ user }: { user: User }) {
         requestSize = calculateRequestSize(resolvedBody);
       }
 
-      console.log("📡 Making fetch request with resolved values...");
       const response = await fetch(resolvedUrl, fetchOptions);
       clearTimeout(timeoutId);
 
@@ -352,12 +304,11 @@ export default function RestClient({ user }: { user: User }) {
       };
 
       const responseSize = new TextEncoder().encode(responseText).length;
-      // Save to history using the hook
       await saveRequestToHistory({
         method: request.method,
         url: resolvedUrl,
         headers: request.headers.filter(
-          (h) => h.enabled && h.key.trim() && h.value.trim(),
+          (h) => h.enabled && h.key.trim() && h.value.trim()
         ),
         body: request.body,
         status: response.status,
@@ -372,22 +323,20 @@ export default function RestClient({ user }: { user: User }) {
     } catch (error) {
       const endTime = Date.now();
       const errorMessage =
-        error instanceof Error ? error.message : "Request failed";
+        error instanceof Error ? error.message : 'Request failed';
 
       const errorResponse = {
         status: 0,
-        statusText: "Network Error",
+        statusText: 'Network Error',
         headers: {},
         body: `Error: ${errorMessage}`,
         time: endTime - startTime,
       };
-
-      // Save error to history
       await saveRequestToHistory({
         method: request.method,
         url: replaceVariables(request.url, variables),
         headers: request.headers.filter(
-          (h) => h.enabled && h.key.trim() && h.value.trim(),
+          (h) => h.enabled && h.key.trim() && h.value.trim()
         ),
         body: request.body,
         status: 0,
@@ -409,8 +358,8 @@ export default function RestClient({ user }: { user: User }) {
       ...request.headers,
       {
         id: Date.now().toString(),
-        key: "",
-        value: "",
+        key: '',
+        value: '',
         enabled: true,
       },
     ];
@@ -419,11 +368,11 @@ export default function RestClient({ user }: { user: User }) {
 
   const updateHeader = (
     id: string,
-    field: "key" | "value" | "enabled",
-    value: string | boolean,
+    field: 'key' | 'value' | 'enabled',
+    value: string | boolean
   ) => {
     const newHeaders = request.headers.map((h) =>
-      h.id === id ? { ...h, [field]: value } : h,
+      h.id === id ? { ...h, [field]: value } : h
     );
     setRequest({ ...request, headers: newHeaders });
   };
@@ -433,8 +382,8 @@ export default function RestClient({ user }: { user: User }) {
     if (newHeaders.length === 0) {
       newHeaders.push({
         id: Date.now().toString(),
-        key: "",
-        value: "",
+        key: '',
+        value: '',
         enabled: true,
       });
     }
@@ -444,9 +393,9 @@ export default function RestClient({ user }: { user: User }) {
   const addVariable = () => {
     const newVariable: Variable = {
       id: Date.now().toString(),
-      name: "",
-      value: "",
-      description: "",
+      name: '',
+      value: '',
+      description: '',
       enabled: true,
     };
     setVariables([...variables, newVariable]);
@@ -454,11 +403,11 @@ export default function RestClient({ user }: { user: User }) {
 
   const updateVariable = (
     id: string,
-    field: "name" | "value" | "description" | "enabled",
-    value: string | boolean,
+    field: 'name' | 'value' | 'description' | 'enabled',
+    value: string | boolean
   ) => {
     const newVariables = variables.map((v) =>
-      v.id === id ? { ...v, [field]: value } : v,
+      v.id === id ? { ...v, [field]: value } : v
     );
     setVariables(newVariables);
   };
@@ -475,10 +424,10 @@ export default function RestClient({ user }: { user: User }) {
   const exportVariables = () => { };
 
   const headerCount = request.headers.filter(
-    (h) => h.enabled && h.key && h.value,
+    (h) => h.enabled && h.key && h.value
   ).length;
   const variableCount = variables.filter(
-    (v) => v.enabled && v.name && v.value,
+    (v) => v.enabled && v.name && v.value
   ).length;
 
   const requestHasVariables =
@@ -490,23 +439,23 @@ export default function RestClient({ user }: { user: User }) {
     <div className="bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">REST Client</h1>
-          <p className="mt-2 text-gray-600">
-            Build, test, and debug your REST API requests with variable support
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
+          <p className="mt-2 text-gray-600">{t('subtitle')}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 mb-6">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Request</h2>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {t('request')}
+              </h2>
               <div className="flex items-center space-x-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  Ready
+                  {t('ready')}
                 </span>
                 {requestHasVariables && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                    Uses Variables
+                    {t('usesVariables')}
                   </span>
                 )}
               </div>
@@ -521,17 +470,15 @@ export default function RestClient({ user }: { user: User }) {
               onExecute={executeRequest}
             />
 
-            {/* Variable Preview for URL */}
             {hasVariables(request.url) && (
               <VariablePreview
                 text={request.url}
                 variables={variables}
-                label="URL"
+                label={t('url')}
                 className="mb-4"
               />
             )}
 
-            {/* Styled Tab Navigation */}
             <div className="border-b border-gray-200 mt-6 mb-6">
               <nav className="-mb-px flex space-x-8">
                 <TabNavigation
@@ -543,9 +490,8 @@ export default function RestClient({ user }: { user: User }) {
               </nav>
             </div>
 
-            {/* Tab Content with consistent styling */}
             <div className="mt-6">
-              {activeTab === "body" && (
+              {activeTab === 'body' && (
                 <div className="space-y-4">
                   <RequestBodyTab
                     body={request.body}
@@ -553,18 +499,17 @@ export default function RestClient({ user }: { user: User }) {
                     onBodyChange={(body) => setRequest({ ...request, body })}
                     onFormatChange={setBodyFormat}
                   />
-                  {/* Variable Preview for Body */}
                   {hasVariables(request.body) && (
                     <VariablePreview
                       text={request.body}
                       variables={variables}
-                      label="Request Body"
+                      label={t('requestBody')}
                     />
                   )}
                 </div>
               )}
 
-              {activeTab === "headers" && (
+              {activeTab === 'headers' && (
                 <div className="space-y-4">
                   <HeadersTab
                     headers={request.headers}
@@ -572,14 +517,13 @@ export default function RestClient({ user }: { user: User }) {
                     onUpdateHeader={updateHeader}
                     onRemoveHeader={removeHeader}
                   />
-                  {/* Variable Preview for Headers */}
                   {request.headers.some(
-                    (h) => hasVariables(h.key) || hasVariables(h.value),
+                    (h) => hasVariables(h.key) || hasVariables(h.value)
                   ) && (
                       <div className="space-y-2">
                         {request.headers
                           .filter(
-                            (h) => hasVariables(h.key) || hasVariables(h.value),
+                            (h) => hasVariables(h.key) || hasVariables(h.value)
                           )
                           .map((header) => (
                             <div key={header.id}>
@@ -587,14 +531,14 @@ export default function RestClient({ user }: { user: User }) {
                                 <VariablePreview
                                   text={header.key}
                                   variables={variables}
-                                  label={`Header Key`}
+                                  label={t('headerKey')}
                                 />
                               )}
                               {hasVariables(header.value) && (
                                 <VariablePreview
                                   text={header.value}
                                   variables={variables}
-                                  label={`Header Value`}
+                                  label={t('headerValue')}
                                 />
                               )}
                             </div>
@@ -604,7 +548,7 @@ export default function RestClient({ user }: { user: User }) {
                 </div>
               )}
 
-              {activeTab === "variables" && user && (
+              {activeTab === 'variables' && user && (
                 <div className="space-y-4">
                   <Suspense
                     fallback={
@@ -625,7 +569,7 @@ export default function RestClient({ user }: { user: User }) {
                 </div>
               )}
 
-              {activeTab === "variables" && !user && (
+              {activeTab === 'variables' && !user && (
                 <div className="text-center py-8 text-gray-500">
                   <svg
                     className="mx-auto h-12 w-12 text-gray-400"
@@ -641,15 +585,13 @@ export default function RestClient({ user }: { user: User }) {
                     />
                   </svg>
                   <h3 className="mt-4 text-lg font-medium">
-                    Authentication Required
+                    {t('authRequired')}
                   </h3>
-                  <p className="mt-2">
-                    Please sign in to use variables feature
-                  </p>
+                  <p className="mt-2">{t('signInToUse')}</p>
                 </div>
               )}
 
-              {activeTab === "code" && (
+              {activeTab === 'code' && (
                 <div className="space-y-4">
                   <CodeTab
                     request={{
@@ -667,7 +609,7 @@ export default function RestClient({ user }: { user: User }) {
                   />
                   {requestHasVariables && (
                     <div className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded p-2">
-                      📝 Code shows resolved values with variables replaced
+                      {t('codeInfo')}
                     </div>
                   )}
                 </div>
@@ -681,7 +623,7 @@ export default function RestClient({ user }: { user: User }) {
             <div className="flex items-center">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
               <span className="text-sm text-blue-700">
-                Saving request to history...
+                {t('savingHistory')}
               </span>
             </div>
           </div>
@@ -692,15 +634,15 @@ export default function RestClient({ user }: { user: User }) {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  Response
+                  {t('response')}
                 </h2>
                 <div className="flex items-center space-x-2">
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${response.status >= 200 && response.status < 300
-                      ? "bg-green-100 text-green-800"
+                      ? 'bg-green-100 text-green-800'
                       : response.status >= 400
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
                       }`}
                   >
                     {response.status}

@@ -1,4 +1,3 @@
-// app/api/history/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
@@ -6,7 +5,6 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // Get the authenticated user
     const {
       data: { user },
       error: authError,
@@ -18,7 +16,6 @@ export async function POST(request: NextRequest) {
 
     const requestData = await request.json();
 
-    // Insert the request record into the database
     const { error } = await supabase.from('request_history').insert([
       {
         user_id: user.id,
@@ -58,7 +55,6 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
-    // Get the authenticated user
     const {
       data: { user },
       error: authError,
@@ -68,13 +64,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch request history for the user
     const { data: history, error } = await supabase
       .from('request_history')
       .select('*')
       .eq('user_id', user.id)
       .order('timestamp', { ascending: false })
-      .limit(100); // Limit to last 100 requests
+      .limit(100);
 
     if (error) {
       console.error('Database error:', error);
