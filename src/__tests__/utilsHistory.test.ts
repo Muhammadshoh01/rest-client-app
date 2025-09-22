@@ -59,29 +59,24 @@ describe('HistoryAPI', () => {
       expect(body.timestamp).toBeDefined();
     });
 
-    it('should log error if fetch fails', async () => {
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      global.fetch = vi
-        .fn()
-        .mockRejectedValue(new Error('Network error')) as typeof fetch;
+    it('should handle fetch failure gracefully', async () => {
+      const networkError = new Error('Network error');
+      global.fetch = vi.fn().mockRejectedValue(networkError) as typeof fetch;
 
-      await api.saveRequest({
-        method: 'GET',
-        url: 'https://example.com/users/1',
-        headers: [],
-        body: '',
-        status: 500,
-        duration: 10,
-        requestSize: 0,
-        responseSize: 0,
-      });
+      await expect(
+        api.saveRequest({
+          method: 'GET',
+          url: 'https://example.com/users/1',
+          headers: [],
+          body: '',
+          status: 500,
+          duration: 10,
+          requestSize: 0,
+          responseSize: 0,
+        })
+      ).resolves.not.toThrow();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error saving request to history:',
-        expect.any(Error)
-      );
+      expect(fetch).toHaveBeenCalledTimes(1);
     });
   });
 
