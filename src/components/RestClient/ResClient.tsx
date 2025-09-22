@@ -215,7 +215,7 @@ export default function RestClient({ user }: { user: User }) {
     }
 
     const encodedUrl = encodeBase64(requestData.url);
-    const encodedBody = requestData.body.trim()
+    const encodedBody = requestData.body?.trim()
       ? encodeBase64(requestData.body)
       : '';
 
@@ -278,7 +278,7 @@ export default function RestClient({ user }: { user: User }) {
 
       if (
         ['POST', 'PUT', 'PATCH'].includes(request.method) &&
-        request.body.trim()
+        request.body?.trim()
       ) {
         const resolvedBody = replaceVariables(request.body, variables);
         fetchOptions.body = resolvedBody;
@@ -314,7 +314,7 @@ export default function RestClient({ user }: { user: User }) {
         headers: request.headers.filter(
           (h) => h.enabled && h.key.trim() && h.value.trim()
         ),
-        body: request.body,
+        body: request.body ?? '',
         status: response.status,
         duration: endTime - startTime,
         requestSize,
@@ -368,7 +368,7 @@ export default function RestClient({ user }: { user: User }) {
         headers: request.headers.filter(
           (h) => h.enabled && h.key.trim() && h.value.trim()
         ),
-        body: request.body,
+        body: request.body ?? '',
         status: errorStatus,
         duration: endTime - startTime,
         requestSize,
@@ -463,7 +463,7 @@ export default function RestClient({ user }: { user: User }) {
 
   const requestHasVariables =
     hasVariables(request.url) ||
-    hasVariables(request.body) ||
+    hasVariables(request.body ?? '') ||
     request.headers.some((h) => hasVariables(h.key) || hasVariables(h.value));
 
   return (
@@ -525,14 +525,14 @@ export default function RestClient({ user }: { user: User }) {
               {activeTab === 'body' && (
                 <div className="space-y-4">
                   <RequestBodyTab
-                    body={request.body}
+                    body={request.body ?? ''}
                     bodyFormat={bodyFormat}
                     onBodyChange={(body) => setRequest({ ...request, body })}
                     onFormatChange={setBodyFormat}
                   />
-                  {hasVariables(request.body) && (
+                  {hasVariables(request.body ?? '') && (
                     <VariablePreview
-                      text={request.body}
+                      text={request.body ?? ''}
                       variables={variables}
                       label={t('requestBody')}
                     />
@@ -628,7 +628,7 @@ export default function RestClient({ user }: { user: User }) {
                     request={{
                       ...request,
                       url: replaceVariables(request.url, variables),
-                      body: replaceVariables(request.body, variables),
+                      body: replaceVariables(request.body ?? '', variables),
                       headers: request.headers.map((h) => ({
                         ...h,
                         key: replaceVariables(h.key, variables),

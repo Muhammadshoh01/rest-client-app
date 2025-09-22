@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Github } from 'lucide-react';
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
 export default function Footer() {
@@ -54,7 +55,13 @@ export default function Footer() {
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors group"
           >
             <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-red-500 rounded-lg flex items-center justify-center text-white text-xs font-bold group-hover:scale-105 transition-transform duration-200">
-              RS
+              <Image
+                src="/logo.png"
+                alt="RS"
+                width={32}
+                height={32}
+                className="object-cover"
+              />
             </div>
             <span className="text-sm font-medium group-hover:underline">
               {t('rollingSchool')}
