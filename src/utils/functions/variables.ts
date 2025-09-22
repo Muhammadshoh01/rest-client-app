@@ -7,9 +7,7 @@ export const saveVariablesToStorage = (variables: Variable[]): void => {
     if (typeof window !== 'undefined') {
       localStorage.setItem(VARIABLES_STORAGE_KEY, JSON.stringify(variables));
     }
-  } catch (error) {
-    console.error('Failed to save variables to localStorage:', error);
-  }
+  } catch (error) {}
 };
 
 export const loadVariablesFromStorage = (): Variable[] => {
@@ -22,7 +20,6 @@ export const loadVariablesFromStorage = (): Variable[] => {
     const variables = JSON.parse(stored);
     return Array.isArray(variables) ? variables : [];
   } catch (error) {
-    console.error('Failed to load variables from localStorage:', error);
     return [];
   }
 };

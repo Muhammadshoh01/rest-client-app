@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
     ]);
 
     if (error) {
-      console.error('Database error:', error);
       return NextResponse.json(
         { error: 'Failed to save request' },
         { status: 500 }
@@ -43,7 +42,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -72,7 +70,6 @@ export async function GET() {
       .limit(100);
 
     if (error) {
-      console.error('Database error:', error);
       return NextResponse.json(
         { error: 'Failed to fetch history' },
         { status: 500 }
@@ -81,7 +78,6 @@ export async function GET() {
 
     return NextResponse.json({ history });
   } catch (error) {
-    console.error('API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

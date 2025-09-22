@@ -24,7 +24,6 @@ export const useRequestHistory = (user: User | null) => {
       try {
         await historyAPI.saveRequest(requestData);
       } catch (error) {
-        console.error('Failed to save request to history:', error);
       } finally {
         setIsSaving(false);
       }

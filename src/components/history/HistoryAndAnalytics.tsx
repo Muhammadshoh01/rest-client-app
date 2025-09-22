@@ -56,7 +56,6 @@ export default function HistoryAndAnalytics({
       setAnalytics(analyticsData);
     } catch (err) {
       setError('Failed to load history and analytics');
-      console.error('Error loading history:', err);
     } finally {
       setLoading(false);
     }

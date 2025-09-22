@@ -20,7 +20,6 @@ export async function GET() {
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Database error:', error);
       return NextResponse.json(
         { error: 'Failed to fetch analytics' },
         { status: 500 }
@@ -90,7 +89,6 @@ export async function GET() {
 
     return NextResponse.json({ analytics });
   } catch (error) {
-    console.error('API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -35,9 +35,7 @@ export class HistoryAPI {
       if (!response.ok) {
         throw new Error(`Failed to save request: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error('Error saving request to history:', error);
-    }
+    } catch (error) {}
   }
 
   async getHistory(): Promise<RequestHistoryRecord[]> {
