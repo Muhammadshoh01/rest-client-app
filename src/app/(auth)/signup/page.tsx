@@ -23,7 +23,7 @@ export default function SignupForm() {
           <p className="mt-2 text-gray-600">{t('Signup.subtitle')}</p>
         </div>
 
-        <form
+        <form data-testid="signup-form"
           action={async (formData) => {
             setError(null);
 

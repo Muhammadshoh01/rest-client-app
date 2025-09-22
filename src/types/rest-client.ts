@@ -1,7 +1,7 @@
 import { User } from '@supabase/supabase-js';
 
 export interface Header {
-  id: string;
+  id?: string;
   key: string;
   value: string;
   enabled: boolean;
@@ -11,7 +11,7 @@ export interface RequestData {
   method: string;
   url: string;
   headers: Header[];
-  body: string;
+  body?: string;
 }
 
 export interface ResponseData {

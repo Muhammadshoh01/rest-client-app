@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
 import HistoryAndAnalytics from '@/components/history/HistoryAndAnalytics';
 import { encodeBase64 } from '@/utils/functions';
+import { RequestData, Header } from '@/types/rest-client';
+
 
 interface HistoryPageClientProps {
   user: User;
@@ -12,9 +14,9 @@ interface HistoryPageClientProps {
 export default function HistoryPageClient({ user }: HistoryPageClientProps) {
   const router = useRouter();
 
-  const handleNavigateToRequest = (requestData: any) => {
+  const handleNavigateToRequest = (requestData: RequestData) => {
     const encodedUrl = encodeBase64(requestData.url);
-    const encodedBody = requestData.body.trim()
+    const encodedBody = requestData.body?.trim()
       ? encodeBase64(requestData.body)
       : '';
 
@@ -25,8 +27,8 @@ export default function HistoryPageClient({ user }: HistoryPageClientProps) {
 
     const queryParams = new URLSearchParams();
     requestData.headers
-      .filter((h: any) => h.enabled && h.key.trim() && h.value.trim())
-      .forEach((h: any) => {
+      .filter((h: Header) => h.enabled && h.key.trim() && h.value.trim())
+      .forEach((h: Header) => {
         queryParams.append(h.key, h.value);
       });
 

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
-import { HistoryAPI } from '@/utils/api/history';
+import { HistoryAPI } from '../api/history';
 
 export const useRequestHistory = (user: User | null) => {
   const [isSaving, setIsSaving] = useState(false);

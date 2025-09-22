@@ -13,9 +13,16 @@ import { HistoryAPI } from '@/utils/api/history';
 import { RequestHistoryRecord, AnalyticsData } from '../../types/history';
 import { useTranslations } from 'next-intl';
 
+export interface RequestData {
+  method: string;
+  url: string;
+  headers: { id?: string; key: string; value: string; enabled: boolean }[];
+  body?: string;
+}
+
 interface HistoryAndAnalyticsProps {
   user: User;
-  onNavigateToRequest: (requestData: any) => void;
+  onNavigateToRequest: (requestData: RequestData) => void;
 }
 
 export default function HistoryAndAnalytics({
@@ -118,7 +125,7 @@ export default function HistoryAndAnalytics({
       <div className="bg-gray-50 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <div data-testid="spinner" className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         </div>
       </div>
@@ -130,7 +137,7 @@ export default function HistoryAndAnalytics({
       <div className="bg-gray-50 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
-            <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
+            <AlertCircle data-testid="alert-circle-icon" className="mx-auto h-12 w-12 text-red-500" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">{error}</h3>
             <button
               onClick={loadHistoryAndAnalytics}

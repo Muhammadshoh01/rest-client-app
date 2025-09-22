@@ -467,7 +467,7 @@ export default function RestClient({ user }: { user: User }) {
     request.headers.some((h) => hasVariables(h.key) || hasVariables(h.value));
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-gray-50" data-testid="rest-client">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
